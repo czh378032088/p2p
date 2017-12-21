@@ -56,11 +56,13 @@ int ConnectChannel::BindPort(int port)
 {
     struct sockaddr_in adr_inet;
     int ret;
+    int iSockOptVal = 1;
 
     adr_inet.sin_family = AF_INET;  
     adr_inet.sin_port   = htons(port);  
     adr_inet.sin_addr.s_addr = htonl(INADDR_ANY);  
     bzero(adr_inet.sin_zero,8);
+    setsockopt(m_localSocket, SOL_SOCKET, SO_REUSEADDR, &iSockOptVal, sizeof(iSockOptVal)) ;
     ret = bind (m_localSocket, (struct sockaddr *) &adr_inet, sizeof (adr_inet));  
     if(ret < 0)
     {
