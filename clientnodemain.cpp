@@ -76,6 +76,7 @@ int ClientConnectCallBack(ClientConnect*pclent)
     ConnectChannel *pChannel = pclent->CreateConnectChannel(1);
     pChannel->BindPort(8011);
     pChannel->SetCallBack(ClientLtoMCallBack,ClientMtoLCallBack);
+    return 0;
 }
 
 int main(int argc, char* argv[])
@@ -86,7 +87,7 @@ int main(int argc, char* argv[])
     client1.SetConnectedCallBack((void*)&ClientConnectCallBack);
    
 
-    ClientConnect *pConnect = client1.CreatClientConnect(8010,"clienttest2");
+    client1.CreatClientConnect(8010,"GM8136cammera");
     //client1.CreatClientConnect(8010,"clienttest2");
 
 

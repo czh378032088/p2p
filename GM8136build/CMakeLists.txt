@@ -2,7 +2,7 @@ project(holetest)
 
 cmake_minimum_required(VERSION 2.8)
 
-#SET(CMAKE_CXX_FLAGS "-std=c++14")
+#SET(CMAKE_CXX_FLAGS "-Wall -std=c++14")
 
 SET(TOOLCHAIN_DIR "/home/czh/workspace/GM8136SDKreleasev2.0/Software/Embedded_Linux/source/arm-linux-3.3/toolchain_gnueabi-4.4.0_ARMv5TE/")
 SET(CMAKE_C_COMPILER ${TOOLCHAIN_DIR}usr/bin/arm-unknown-linux-uclibcgnueabi-gcc)

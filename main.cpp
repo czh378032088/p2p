@@ -8,9 +8,6 @@
 #include "clientdevice.h"
 #include "debug.h"
 
-
-
-
 char savePort[32];
 bool setupFlag1 = false,setupFlag2 = false;
 uint32_t lastTime = 0;
@@ -50,6 +47,7 @@ int ClientLtoMCallBack(ConnectChannel *pChannel,uint8_t data[],int len)
         setupFlag1 = true;
     }
     data[newLen] = 0;
+    Debug_Printf("%s\n",data);
     return newLen;
 }
 
@@ -75,6 +73,7 @@ int ClientConnectCallBack(ClientConnect*pclent)
     ConnectChannel *pChannel = pclent->CreateConnectChannel(1);
     pChannel->BindPort(8011);
     pChannel->SetCallBack(ClientLtoMCallBack,ClientMtoLCallBack);
+    return 0;
 }
 
 
@@ -108,7 +107,6 @@ int ServerMtoLCallBack(ConnectChannel *pChannel,uint8_t data[],int len)
 
     if(CommonFuc::IsRequestType((char *)data,"SETUP"))
     {
-        int port1,port2;
         newLen = CommonFuc::ReplacePortNum((char *)data,"client_port=","8014-8015",newLen);
         setupFlag2 = true;
     }
@@ -124,6 +122,7 @@ int ServerConnectCallBack(ClientConnect*pclent)
     ConnectChannel *pChannel = pclent->CreateConnectChannel(1);
     pChannel->ConnectAddr("127.0.0.1",8554);
     pChannel->SetCallBack(ServerLtoMCallBack,ServerMtoLCallBack);
+    return 0;
 }
 
 int main(int argc, char* argv[])
@@ -149,12 +148,12 @@ int main(int argc, char* argv[])
     p2pServer.SetUdpPort(8010);
     p2pServer.RunServer();
 
-    client1.StartDevice("192.168.3.7 ",8010);
+    client1.StartDevice("120.77.147.40",8010);
     client1.SetConnectedCallBack((void*)&ClientConnectCallBack);
-    client2.StartDevice("192.168.3.7 ",8010);
+    client2.StartDevice("120.77.147.40",8010);
     client2.SetConnectedCallBack((void*)&ServerConnectCallBack);
 
-    ClientConnect *pConnect = client1.CreatClientConnect(8010,"clienttest2");
+    client1.CreatClientConnect(8010,"clienttest2");
     //client1.CreatClientConnect(8010,"clienttest2");
 
 

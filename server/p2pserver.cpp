@@ -101,6 +101,7 @@ int P2pServerClass::RunServer()
 int P2pServerClass::StopServer()
 {
     m_runFlag = false;
+    return 0;
 }
 
 ClientNode* P2pServerClass::GetClientNode(string&str)
@@ -143,12 +144,13 @@ ConnectNode* P2pServerClass::AddConnectNode(ClientNode* pClient,ConnectNode*pCon
     pClient->AddConnectNode(pConnect);
     m_connectNodeList.push_back(pConnect);
     m_idToConnectObjMap[pConnect->GetConnectId()] = pConnect;
+    return NULL;
     //m_idToConnectObjMap[]
 }
 
 ConnectNode* P2pServerClass::DeleteConnectNode(ClientNode* pClient,ConnectNode*pConnect)
 {
-
+    return NULL;
 }
 
 int P2pServerClass::receive_CL_TO_CL(DataPacket &rxPacket,DataPacket &txPacket,int fd,sockaddr_in &addr)
@@ -214,12 +216,13 @@ int P2pServerClass::receive_CN_TO_CN(DataPacket &rxPacket,DataPacket &txPacket,i
     ConnectNode*pConnectNode = GetConnectNode(rxPacket.GetDestinatId());
     if(pConnectNode != NULL)
     {
-        //Debug_Printf("receive_CN_TO_CN%x\n",pConnectNode);
+        //Debug_Printf("receive_CN_TO_CN%d,%d\n",rxPacket.GetSourceId(),rxPacket.GetDestinatId());
         pConnectNode->Senddata(rxPacket.GetDataBuff(),rxPacket.GetLength());
         return 0;
     }
     else
     {
+        //Debug_Printf("receive_CN_TO_CN%d,%d Error\n",rxPacket.GetSourceId(),rxPacket.GetDestinatId());
         int ret = txPacket.GenErrorRetPacket(rxPacket,NoDisConnectError);
         return ret;
     }
@@ -310,6 +313,7 @@ void *P2pServerClass::P2PserverThread(void*arg)
     }
 
     Debug_Printf("%s end\n",__FUNCTION__);
+    return NULL;
 }
 
 void P2pServerClass::UdpReceiveCallBack(EpollCtrl* p_epoll,void* p_data,int events)

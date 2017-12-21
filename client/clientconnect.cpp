@@ -68,18 +68,20 @@ int ClientConnect::StartConnect(uint16_t port,string &remoteClientName,int isTcp
 
 int ClientConnect::SendData(const uint8_t buff[],int len,sockaddr_in *addr)
 {
+    int ret ;
     if(addr == NULL)
     {
-        sendto(m_connectSocket,buff,len,MSG_DONTWAIT,(struct sockaddr *) &m_connectAddr,sizeof (m_connectAddr));
-       // Debug_ShowIp(m_connectAddr.sin_addr.s_addr,m_connectAddr.sin_port);
-       // Debug_Printf("\n");
+        ret = sendto(m_connectSocket,buff,len,MSG_DONTWAIT,(struct sockaddr *) &m_connectAddr,sizeof (m_connectAddr));
+        //Debug_ShowIp(m_connectAddr.sin_addr.s_addr,m_connectAddr.sin_port);
+        //Debug_Printf("\n");
     }
     else 
     {
-        sendto(m_connectSocket,buff,len,MSG_DONTWAIT,(struct sockaddr *) addr,sizeof (sockaddr_in));
+        ret = sendto(m_connectSocket,buff,len,MSG_DONTWAIT,(struct sockaddr *) addr,sizeof (sockaddr_in));
     }
         
     m_lastSendTime = CommonFuc::GetTimeS();
+    return ret;
 }
 
 int ClientConnect::ReceiveData(uint8_t buff[],int len,sockaddr_in *addr)
@@ -96,6 +98,7 @@ int ClientConnect::ReceiveData(uint8_t buff[],int len,sockaddr_in *addr)
 int ClientConnect::StopConnect(void)
 {
     m_runFlag = 0;
+    return 0;
 }
 
 void ClientConnect::SetRemoteClientId(uint32_t id)
@@ -112,7 +115,7 @@ void ClientConnect::SetRemoteConnectIdAddr(uint8_t conMode,int id,void *addr)
 
         DataPacket txPacket(txBuff,0);
 
-        //Debug_Printf("connected receive ReqCnCmd\n");
+        Debug_Printf("connected receive ReqCnCmd\n");
         txLen = txPacket.GenReqConnectPacket1(m_ownerId,m_remoteConnectId,m_id,m_remoteId,m_connectMode,(uint8_t*)&m_ownerId,sizeof(m_ownerId));
         SendData(txBuff,txLen);
         return;
@@ -120,6 +123,10 @@ void ClientConnect::SetRemoteConnectIdAddr(uint8_t conMode,int id,void *addr)
     if(m_isServer)
     {
         m_connectMode = conMode;
+    }
+    else if(m_connectMode != conMode)
+    {
+        return;
     }
     m_remoteId = id;
     if(conMode != 2)
@@ -155,7 +162,7 @@ uint32_t ClientConnect::GetLocalId(void)
 
 uint32_t ClientConnect::GetRemoteId(void)
 {
-    return m_remoteClientId;
+    return m_remoteConnectId;
 }
 
 ConnectChannel *ClientConnect::CreateConnectChannel(int isTcp)
@@ -201,6 +208,7 @@ void *ClientConnect::P2PconnectThread(void*arg)
         }
         usleep(100);
     }
+    return NULL;
 }
 
 void ClientConnect::GetOwnerAddr(void)
@@ -342,7 +350,6 @@ void ClientConnect::TryConnectRomoteClient(void)
             if(m_getRemoteIdFlag)
                 break;
             
-            
             for(int i = 0 ; i < 10 ; i ++)
             {
                 if(m_getRemoteIdFlag)
@@ -417,7 +424,7 @@ void ClientConnect::CreatServerConnect(void)
                     m_ownerId = rxPacket.GetDestinatId();
                     //m_clientId = rxPacket.GetDestinatId();
                     //m_regClientFlag = 1;
-                    Debug_Printf("++++++++++++++++Register %s as connect %d\n",m_pClientDevice->GetName().c_str(),m_ownerId);
+                    Debug_Printf("++++++++++++++++Register %s connect as %d\n",m_pClientDevice->GetName().c_str(),m_ownerId);
                     return ;
                 }
             }
@@ -458,12 +465,12 @@ void ClientConnect::RunAfterConnected(void)
             }
             else if(cmd == ReqCnCmd)
             {
-                uint8_t txBuff[2048];
+                /*uint8_t txBuff[2048];
                 int  txLen = 0;
 
-                DataPacket txPacket(txBuff,0);
+                DataPacket txPacket(txBuff,0);*/
 
-                Debug_Printf("connected receive ReqCnCmd\n");
+                //Debug_Printf("connected receive ReqCnCmd\n");
                 //txLen = txPacket.GenReqConnectPacket1(m_ownerId,m_remoteConnectId,m_id,m_remoteId,m_connectMode,(uint8_t*)&m_ownerId,sizeof(m_ownerId));
                 //SendData(txBuff,txLen);
             }

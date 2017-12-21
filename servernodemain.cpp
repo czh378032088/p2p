@@ -50,7 +50,7 @@ int ServerMtoLCallBack(ConnectChannel *pChannel,uint8_t data[],int len)
 
     if(CommonFuc::IsRequestType((char *)data,"SETUP"))
     {
-        int port1,port2;
+        //int port1,port2;
         newLen = CommonFuc::ReplacePortNum((char *)data,"client_port=","8014-8015",newLen);
         setupFlag2 = true;
     }
@@ -66,11 +66,12 @@ int ServerConnectCallBack(ClientConnect*pclent)
     ConnectChannel *pChannel = pclent->CreateConnectChannel(1);
     pChannel->ConnectAddr("127.0.0.1",554);
     pChannel->SetCallBack(ServerLtoMCallBack,ServerMtoLCallBack);
+    return 0;
 }
 
 int main(int argc, char* argv[])
 {
-    ClientDevice client2("clienttest2");
+    ClientDevice client2("GM8136cammera");
 
     client2.StartDevice("120.77.147.40",8010);
     client2.SetConnectedCallBack((void*)&ServerConnectCallBack);

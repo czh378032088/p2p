@@ -44,6 +44,11 @@ ConnectChannel::ConnectChannel(ClientConnect *pConnect,int conId,int isTcp)
     m_totalLocalLen = m_totalRemoteLen = 0;
 }
 
+ConnectChannel::~ConnectChannel()
+{
+    
+}
+
 int ConnectChannel::BindPort(int port)
 {
     struct sockaddr_in adr_inet;
@@ -65,6 +70,7 @@ int ConnectChannel::BindPort(int port)
         m_listenSocket = m_localSocket;
         m_localSocket = - 1 ;
     }
+    return 0;
 }
 
 int ConnectChannel::ConnectAddr(const char ip[],int port)
@@ -82,6 +88,7 @@ int ConnectChannel::ConnectAddr(const char ip[],int port)
     {
         m_listenSocket = - 1;
     }
+    return 0;
 }
 
 int ConnectChannel::ReplayRemotePacket(uint8_t buff[],int len)
@@ -116,7 +123,7 @@ int ConnectChannel::ReplayRemotePacket(uint8_t buff[],int len)
     else 
     {
         uint8_t disNum = (packetNum + 256) - m_remoteIndex;
-        //Debug_Printf("packetNum %d ！= m_remoteIndex %d\n",packetNum,m_remoteIndex);
+        Debug_Printf("packetNum %d ！= m_remoteIndex %d\n",packetNum,m_remoteIndex);
         if(disNum < MAX_BUFF_NUM / 2)
         {
             uint8_t mark = MAX_BUFF_NUM - 1;
@@ -226,6 +233,7 @@ int ConnectChannel::ReplayRemotePacket(uint8_t buff[],int len)
             m_remoteIndex = packetNum + 1;
         }
     }
+    return 0;
 }
 
 int ConnectChannel::SendLocalPacket(void)
@@ -251,7 +259,7 @@ int ConnectChannel::SendLocalPacket(void)
 
 int ConnectChannel::LocalSendData(uint8_t buff[],int len)
 {
-    int ret = -1;
+   int ret = -1;
     //Debug_Printf((char*)buff);
     if(m_isConnected == 0)
         return -1;
@@ -261,12 +269,13 @@ int ConnectChannel::LocalSendData(uint8_t buff[],int len)
     m_totalRemoteLen += len;
     if(m_isTcp)
     {
-        send(m_localSocket,buff,len,MSG_DONTWAIT);
+        ret = send(m_localSocket,buff,len,MSG_DONTWAIT);
     }
     else 
     {
-        sendto(m_localSocket,buff,len,MSG_DONTWAIT,(struct sockaddr *) &m_localAddr,sizeof(m_localAddr));
+        ret = sendto(m_localSocket,buff,len,MSG_DONTWAIT,(struct sockaddr *) &m_localAddr,sizeof(m_localAddr));
     }
+    return ret;
 }
 
 int ConnectChannel::LocalReceiveData(uint8_t buff[],int len)

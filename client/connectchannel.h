@@ -18,6 +18,7 @@ class ConnectChannel
 {
 public:
     ConnectChannel(ClientConnect *pConnect,int conId,int isTcp);
+    ~ConnectChannel();
     int BindPort(int port);
     int ConnectAddr(const char ip[],int port);
     int ReplayRemotePacket(uint8_t buff[],int len);

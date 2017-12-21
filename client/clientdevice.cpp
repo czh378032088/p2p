@@ -61,17 +61,19 @@ int ClientDevice::StopDevice()
     }
     m_connectNum = 0;
     this->m_runFlag = 0;
+    return 0;
 }
 
 int ClientDevice::SendData(const uint8_t buff[],int len)
 {
     //Debug_Printf("ClientDevice::SendData\n");
     pthread_mutex_lock(&m_sendlock); 
-    sendto(m_serverSocket,buff,len,MSG_DONTWAIT,(struct sockaddr *) &m_serverAddr,sizeof (m_serverAddr));
+    int ret = sendto(m_serverSocket,buff,len,MSG_DONTWAIT,(struct sockaddr *) &m_serverAddr,sizeof (m_serverAddr));
     m_lastSendTime = CommonFuc::GetTimeS();
     pthread_mutex_unlock(&m_sendlock); 
     //Debug_ShowIp(m_serverAddr.sin_addr.s_addr,m_serverAddr.sin_port);
     //Debug_Printf("ClientDevice::SendData end\n");
+    return ret;
 }
 
 int ClientDevice::ReceiveData(uint8_t buff[],int len,sockaddr_in *addr)
@@ -88,14 +90,19 @@ int ClientDevice::ReceiveData(uint8_t buff[],int len,sockaddr_in *addr)
 
 ClientConnect *ClientDevice::CreatClientConnect(uint16_t port,string remoteClientName,int isTcp)
 {
-    if(m_connectNum == MAX_CONNECT)
+    ClientConnect *p;
+    if(m_connectNum >= MAX_CONNECT)
         return NULL;
-    m_clientConnect[m_connectNum] = new ClientConnect(this,m_connectNum);
-    
-    if(m_connectedCallBack) 
-        m_clientConnect[m_connectNum]->SetConnectedCallBack((ConnectedCallBack)m_connectedCallBack);
-    m_clientConnect[m_connectNum]->StartConnect(port,remoteClientName,isTcp);
+    p = new ClientConnect(this,m_connectNum);
+    if( p == NULL)
+        return NULL;
+    m_clientConnect[m_connectNum] = p;
     m_connectNum ++;
+    if(m_connectedCallBack) 
+        p->SetConnectedCallBack((ConnectedCallBack)m_connectedCallBack);
+    p->StartConnect(port,remoteClientName,isTcp);
+
+    return p;
 }
 
 sockaddr_in ClientDevice::GetServerSocketAddr(void)
@@ -141,11 +148,11 @@ ClientConnect *ClientDevice::GetClientConnect(int id)
 void *ClientDevice::P2PclientThread(void*arg)
 {
     ClientDevice*p_this = (ClientDevice*)arg;
-    uint8_t rxBuff[2048];
+    //uint8_t rxBuff[2048];
     uint8_t txBuff[2048];
-    int  rxLen = 0;
+    //int  rxLen = 0;
     int  txLen = 0;
-    DataPacket rxPacket(rxBuff,0);
+    //DataPacket rxPacket(rxBuff,0);
     DataPacket txPacket(txBuff,0);
 
     p_this->GetLocalAddr();
@@ -168,6 +175,7 @@ void *ClientDevice::P2PclientThread(void*arg)
         p_this->HandleReceiveData();
         usleep(10000);
     }
+    return NULL;
 }
 
 void ClientDevice::GetLocalAddr(void)
@@ -215,19 +223,16 @@ void ClientDevice::GetLocalAddr(void)
                 continue;
             }
             struct in_pktinfo *pi = (struct in_pktinfo *)CMSG_DATA ( cmsg );    
-            char dst[100],ipi[100];
 
             if((pi->ipi_addr.s_addr & 0xff) != 0)
                 m_localAddr.sin_addr.s_addr = pi->ipi_addr.s_addr;
             else if((pi->ipi_spec_dst.s_addr & 0xff) != 0)
                 m_localAddr.sin_addr.s_addr = pi->ipi_spec_dst.s_addr;
-            //Debug_Printf("pi->ipi_addr.s_addr = %x,pi->ipi_spec_dst.s_addr = %x\n",pi->ipi_addr.s_addr,pi->ipi_spec_dst.s_addr);
-            //if ((inet_ntop ( AF_INET,&(m_localAddr.sin_addr.s_addr),dst,sizeof(dst))) !=NULL )
-            //{
+
             Debug_Printf("本地ip地址");
             Debug_ShowIp(m_localAddr.sin_addr.s_addr,m_localAddr.sin_port);
             Debug_Printf("\n");
-            //}
+
             goto Finished;
         }   
     }
@@ -270,22 +275,23 @@ int  ClientDevice::RegisterDevice(void)
             usleep(10000);
         }
     }
+    return 0;
 }
 
 void ClientDevice::HandleReceiveData(void)
 {
     uint8_t rxBuff[2048];
-    uint8_t txBuff[2048];
+    //uint8_t txBuff[2048];
     int  rxLen = 0;
-    int  txLen = 0;
+    //int  txLen = 0;
     DataPacket rxPacket(rxBuff,0);
-    DataPacket txPacket(txBuff,0);
+    //DataPacket txPacket(txBuff,0);
 
     rxLen = ReceiveData(rxBuff,2048);
 
     if(rxLen > 0 )
     {
-        Debug_ShowHex(rxBuff,rxLen);
+        //Debug_ShowHex(rxBuff,rxLen);
         //Debug_Printf("error code = %d\n",rxPacket.GetErrorCode());
         rxPacket.UpdateLength(rxLen);
         PacketType ptype = rxPacket.GetPacketType();

@@ -39,9 +39,11 @@ uint32_t ClientNode::GetClientId(void)
 ConnectNode* ClientNode::AddConnectNode(ConnectNode*pNode)
 {
     m_connectNodeList.push_back(pNode);    
+    return pNode;
 }
 
 ConnectNode* ClientNode::DeleteConnectNode(ConnectNode*pNode)
 {
     m_connectNodeList.remove(pNode);
+    return NULL;
 }

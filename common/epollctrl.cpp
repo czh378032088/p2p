@@ -79,7 +79,7 @@ void EpollCtrl::RunEvent(int waitTime)
         this->m_timeoutIr = this->m_infoList.begin(); 
     }
     p_info = *this->m_timeoutIr;
-    if(p_info->timeout >= 0 && ((now_time - p_info->last_active_time) > p_info->timeout))
+    if(p_info->timeout >= 0 && ((now_time - p_info->last_active_time) > (uint32_t)p_info->timeout))
     {
         struct epoll_event epv = {0, {0}};
         epoll_ctl(this->m_epollFd, EPOLL_CTL_DEL, p_info->fd, &epv);
