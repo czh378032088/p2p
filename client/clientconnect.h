@@ -22,6 +22,7 @@ class ClientConnect
 {
 public:
     ClientConnect(ClientDevice*p_client,int id,int isServer = 0);
+    ~ClientConnect();
     int StartConnect(uint16_t port,string &remoteClientName,int isTcp = 0);
     int SendData(const uint8_t buff[],int len,sockaddr_in *addr = NULL);
     int ReceiveData(uint8_t buff[],int len,sockaddr_in *addr = NULL);
@@ -35,6 +36,7 @@ public:
     ConnectChannel *CreateConnectChannel(int isTcp);
     int GetChannelNum(void);
     ConnectChannel *GetChannel(int id);
+    void ResetConnect(void);
 protected:
     static void *P2PconnectThread(void*arg);
     void GetOwnerAddr(void);

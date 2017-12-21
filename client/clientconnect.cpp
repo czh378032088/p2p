@@ -28,6 +28,12 @@ ClientConnect::ClientConnect(ClientDevice*p_client,int id,int isServer)
     m_channelNum = 0;
 }
 
+ClientConnect::~ClientConnect()
+{
+    m_runFlag = false;
+    ResetConnect();        
+}
+
 int ClientConnect::StartConnect(uint16_t port,string &remoteClientName,int isTcp)
 {
     //socklen_t len = sizeof(struct sockaddr_in);
@@ -183,6 +189,21 @@ int ClientConnect::GetChannelNum(void)
 ConnectChannel *ClientConnect::GetChannel(int id)
 {
     return m_connectChannel[id];
+}
+
+void ClientConnect::ResetConnect(void)
+{
+    for(int i = 0 ; i < m_channelNum ; i ++)
+    {
+        if(m_connectChannel[i] !=  NULL)
+        {
+            delete m_connectChannel[i];
+            m_connectChannel[i] = NULL;
+        }
+    }
+    m_channelNum = 0;
+    m_connectedFlag = 0;
+    m_connectMode = 0;
 }
 
 void *ClientConnect::P2PconnectThread(void*arg)

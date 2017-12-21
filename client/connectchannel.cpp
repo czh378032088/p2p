@@ -46,7 +46,10 @@ ConnectChannel::ConnectChannel(ClientConnect *pConnect,int conId,int isTcp)
 
 ConnectChannel::~ConnectChannel()
 {
-    
+    if(m_localSocket > 0)
+        close(m_localSocket);
+    if(m_listenSocket > 0) 
+        close(m_listenSocket);
 }
 
 int ConnectChannel::BindPort(int port)

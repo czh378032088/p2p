@@ -318,7 +318,10 @@ void ClientDevice::HandleReceiveData(void)
                     for(int i = 0 ; i < m_connectNum ; i ++)
                     {
                         if(m_connectedFlag[i] == flag)
+                        {
                             disconnectid = i;
+                            m_clientConnect[disconnectid]->ResetConnect();
+                        }
                         break;
                     }
                 }
