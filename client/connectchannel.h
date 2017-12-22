@@ -41,6 +41,7 @@ private:
     uint32_t m_totalRemoteLen;
     uint8_t m_localIndex;
     uint8_t m_remoteIndex;
+    uint8_t m_remoteLastIndex;
     int m_localSocket;
     int m_listenSocket;
     int m_channelNum;

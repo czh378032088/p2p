@@ -479,8 +479,10 @@ void ClientConnect::RunAfterConnected(void)
             else if(cmd == ReqResendCmd)
             {
                 uint8_t buff[256];
+                
                 uint8_t channel = rxPacket.GetChannel();
                 int size = rxPacket.GetResendNum(buff);
+                //Debug_Printf("cmd == ReqResendCmd %d,%d,%x\n",channel,m_channelNum,m_connectChannel[channel]);
                 if(channel < m_channelNum && m_connectChannel[channel] != NULL)
                     m_connectChannel[channel]->ResendLocalPacket(buff,size);
             }

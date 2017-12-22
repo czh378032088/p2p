@@ -30,6 +30,7 @@ ConnectChannel::ConnectChannel(ClientConnect *pConnect,int conId,int isTcp)
     m_isTcp = isTcp;
     m_isConnected = 0;
     m_localIndex = m_remoteIndex = 0;
+    m_remoteLastIndex = 0;
     m_pConnect = pConnect;
 
     for(int i = 0 ; i < MAX_BUFF_NUM ; i ++)
@@ -104,11 +105,51 @@ int ConnectChannel::ReplayRemotePacket(uint8_t buff[],int len)
     //Debug_Printf("ReplayRemotePacket1\n");
     DataPacket rxPacket(buff,len);
     int packetNum = rxPacket.GetSerialNum();
+    /*LocalSendData(rxPacket.GetDataField(),rxPacket.GetDataFieldSize());
+
+    if(m_remoteIndex != packetNum)
+    {
+        uint8_t mark = MAX_BUFF_NUM - 1;
+        uint8_t dataIndex = packetNum & mark;
+        uint8_t buffIndex = m_remoteIndex & mark;
+        uint8_t indexBuff[MAX_BUFF_NUM];
+        int num = 0;
+
+        memcpy(m_remoteBuff[dataIndex],buff,len);
+        m_remoteLen[dataIndex] = len;
+        if(dataIndex > buffIndex)
+        {
+            for(int i = buffIndex ; i < dataIndex ; i ++)
+            {
+                if(m_remoteLen[i] == 0)
+                {
+                    indexBuff[num] = m_remoteIndex + i - buffIndex;
+                    num ++;
+                }
+            }
+        }
+        else
+        {
+            for(int i = buffIndex ; i < dataIndex + MAX_BUFF_NUM; i ++)
+            {
+                if(m_remoteLen[i & mark] == 0)
+                {
+                    indexBuff[num] = m_remoteIndex + i - buffIndex;
+                    num ++;
+                }
+            }
+        }
+        //m_remoteLastIndex = packetNum;
+        if(num > 0)
+            SendResendPacket(indexBuff,num);
+    }
+
+    m_remoteIndex = packetNum + 1;*/
     if(packetNum == m_remoteIndex)
     {
         LocalSendData(rxPacket.GetDataField(),rxPacket.GetDataFieldSize());
         m_remoteIndex ++;
-        for(int i = 0 ; i < MAX_BUFF_NUM / 2 ; i ++)
+        for(int i = 0 ; i < MAX_BUFF_NUM ; i ++)
         {
             uint8_t dataIndex = m_remoteIndex & (MAX_BUFF_NUM - 1);
             DataPacket bfPacket(m_remoteBuff[dataIndex],m_remoteLen[dataIndex]);
@@ -124,22 +165,24 @@ int ConnectChannel::ReplayRemotePacket(uint8_t buff[],int len)
                 break;
             }
         }
+        m_remoteLastIndex = m_remoteIndex;
     }
     else 
     {
         uint8_t disNum = (packetNum + 256) - m_remoteIndex;
         Debug_Printf("packetNum %d ！= m_remoteIndex %d\n",packetNum,m_remoteIndex);
+        Debug_Printf("packetNum %d ！= m_remoteLastIndex %d\n",packetNum,m_remoteLastIndex);
         if(disNum < MAX_BUFF_NUM / 2)
         {
             uint8_t mark = MAX_BUFF_NUM - 1;
             uint8_t dataIndex = packetNum & mark;
-            uint8_t buffIndex = m_remoteIndex & mark;
+            uint8_t buffIndex = m_remoteLastIndex & mark;
             uint8_t indexBuff[MAX_BUFF_NUM];
             int num = 0;
 
             memcpy(m_remoteBuff[dataIndex],buff,len);
             m_remoteLen[dataIndex] = len;
-            if(dataIndex > buffIndex)
+            if(dataIndex >= buffIndex)
             {
                 for(int i = buffIndex ; i < dataIndex ; i ++)
                 {
@@ -161,8 +204,13 @@ int ConnectChannel::ReplayRemotePacket(uint8_t buff[],int len)
                     } 
                 }
             }
+            m_remoteLastIndex = packetNum + 1;
             if(num > 0)
+            {
                 SendResendPacket(indexBuff,num);
+
+            }
+
         }
         else if(disNum < MAX_BUFF_NUM)
         {
@@ -178,8 +226,13 @@ int ConnectChannel::ReplayRemotePacket(uint8_t buff[],int len)
                 m_remoteLen[dataIndex] = 0;
                 m_remoteIndex ++;
             }
+            
+            uint8_t mark = MAX_BUFF_NUM - 1;
+            uint8_t dataIndex = packetNum & mark;
+            memcpy(m_remoteBuff[dataIndex],buff,len);
+            m_remoteLen[dataIndex] = len;
 
-            for(int i = 0 ; i < MAX_BUFF_NUM / 2 ; i ++)
+            for(int i = 0 ; i < MAX_BUFF_NUM ; i ++)
             {
                 uint8_t dataIndex = m_remoteIndex & (MAX_BUFF_NUM - 1);
                 DataPacket bfPacket(m_remoteBuff[dataIndex],m_remoteLen[dataIndex]);
@@ -195,15 +248,12 @@ int ConnectChannel::ReplayRemotePacket(uint8_t buff[],int len)
                     break;
                 }
             }
-            uint8_t mark = MAX_BUFF_NUM - 1;
-            uint8_t dataIndex = packetNum & mark;
+            
             uint8_t buffIndex = m_remoteIndex & mark;
             uint8_t indexBuff[MAX_BUFF_NUM];
             int num = 0;
-
-            memcpy(m_remoteBuff[dataIndex],buff,len);
-            m_remoteLen[dataIndex] = len;
-            if(dataIndex > buffIndex)
+            
+            if(dataIndex >= buffIndex)
             {
                 for(int i = buffIndex ; i < dataIndex ; i ++)
                 {
@@ -225,6 +275,7 @@ int ConnectChannel::ReplayRemotePacket(uint8_t buff[],int len)
                     } 
                 }
             }
+            m_remoteLastIndex = packetNum + 1;
             if(num > 0)
                 SendResendPacket(indexBuff,num);
         }
@@ -236,6 +287,7 @@ int ConnectChannel::ReplayRemotePacket(uint8_t buff[],int len)
             }
             LocalSendData(rxPacket.GetDataField(),rxPacket.GetDataFieldSize());
             m_remoteIndex = packetNum + 1;
+            m_remoteLastIndex = m_remoteIndex;
         }
     }
     return 0;
@@ -380,4 +432,5 @@ void ConnectChannel::SendResendPacket(uint8_t resendNum[],int size)
     DataPacket txPacket(txBuff,0);
     txLen = txPacket.GenReSendPacket(m_pConnect->GetLocalId(),m_pConnect->GetRemoteId(),m_channelNum,resendNum,size);
     m_pConnect->SendData(txBuff,txLen);
+    Debug_ShowHex(resendNum,size);
 }

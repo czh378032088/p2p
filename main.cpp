@@ -7,6 +7,7 @@
 #include "p2pserver.h"
 #include "clientdevice.h"
 #include "debug.h"
+#include "fifoserial.h"
 
 char savePort[32];
 bool setupFlag1 = false,setupFlag2 = false;
@@ -139,6 +140,10 @@ int main(int argc, char* argv[])
     Debug_Printf("%s\n",test);
     CommonFuc::ReplacePortNum(test,"server_port=","123456-234567",2048);
     Debug_Printf("%s\n",test);*/
+
+    FifoSerial fifoSerial(0x100,0x1000);
+
+    return 0;
     
     P2pServerClass p2pServer;
     ClientDevice client1("clienttest1");
